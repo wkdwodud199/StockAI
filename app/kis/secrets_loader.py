@@ -90,17 +90,28 @@ def parse_mts_text(text: str) -> dict[str, _Block]:
     return blocks
 
 
-_ENV_KEYS_BY_LABEL: dict[str, tuple[str, str, str | None]] = {
-    "real": ("KIS_REAL_APP_KEY", "KIS_REAL_APP_SECRET", "KIS_REAL_ACCOUNT_NO"),
+# label → (key_var, secret_var, account_var, product_code_var, default_product_code)
+_ENV_KEYS_BY_LABEL: dict[str, tuple[str, str, str, str, str]] = {
+    "real": (
+        "KIS_REAL_APP_KEY",
+        "KIS_REAL_APP_SECRET",
+        "KIS_REAL_ACCOUNT_NO",
+        "KIS_REAL_ACCOUNT_PRODUCT_CODE",
+        "01",
+    ),
     "mock_domestic": (
         "KIS_MOCK_DOMESTIC_APP_KEY",
         "KIS_MOCK_DOMESTIC_APP_SECRET",
         "KIS_MOCK_DOMESTIC_ACCOUNT_NO",
+        "KIS_MOCK_DOMESTIC_ACCOUNT_PRODUCT_CODE",
+        "01",
     ),
     "mock_futures": (
         "KIS_MOCK_FUTURES_APP_KEY",
         "KIS_MOCK_FUTURES_APP_SECRET",
         "KIS_MOCK_FUTURES_ACCOUNT_NO",
+        "KIS_MOCK_FUTURES_ACCOUNT_PRODUCT_CODE",
+        "03",
     ),
 }
 
@@ -110,34 +121,42 @@ def render_env(blocks: dict[str, _Block], existing: dict[str, str] | None = None
     existing = dict(existing or {})
     # 자동 채움
     for label, blk in blocks.items():
-        key_var, sec_var, acct_var = _ENV_KEYS_BY_LABEL[label]
-        existing.setdefault(key_var, blk.app_key)
-        existing[key_var] = blk.app_key  # 덮어쓰기 (마이그레이션이므로)
+        key_var, sec_var, acct_var, pcode_var, pcode_default = _ENV_KEYS_BY_LABEL[label]
+        existing[key_var] = blk.app_key
         existing[sec_var] = blk.app_secret
         if acct_var and blk.account_no:
             existing[acct_var] = blk.account_no
+        # 계좌상품코드는 기존값 보존, 없으면 기본값
+        existing.setdefault(pcode_var, pcode_default)
     # LLM/UI 기본값 보존
     existing.setdefault("LLM_PROVIDER", "anthropic")
     existing.setdefault("ANTHROPIC_API_KEY", "")
     existing.setdefault("OPENAI_API_KEY", "")
     existing.setdefault("OLLAMA_BASE_URL", "http://localhost:11434")
     existing.setdefault("REAL_MODE_PIN", "0000")
+    existing.setdefault("MOBILE_API_TOKEN", "")
+    existing.setdefault("API_PORT", "8765")
 
     order = [
         "KIS_REAL_APP_KEY",
         "KIS_REAL_APP_SECRET",
         "KIS_REAL_ACCOUNT_NO",
+        "KIS_REAL_ACCOUNT_PRODUCT_CODE",
         "KIS_MOCK_DOMESTIC_APP_KEY",
         "KIS_MOCK_DOMESTIC_APP_SECRET",
         "KIS_MOCK_DOMESTIC_ACCOUNT_NO",
+        "KIS_MOCK_DOMESTIC_ACCOUNT_PRODUCT_CODE",
         "KIS_MOCK_FUTURES_APP_KEY",
         "KIS_MOCK_FUTURES_APP_SECRET",
         "KIS_MOCK_FUTURES_ACCOUNT_NO",
+        "KIS_MOCK_FUTURES_ACCOUNT_PRODUCT_CODE",
         "LLM_PROVIDER",
         "ANTHROPIC_API_KEY",
         "OPENAI_API_KEY",
         "OLLAMA_BASE_URL",
         "REAL_MODE_PIN",
+        "MOBILE_API_TOKEN",
+        "API_PORT",
     ]
     lines: list[str] = []
     for k in order:

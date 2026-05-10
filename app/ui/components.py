@@ -19,14 +19,36 @@ def env_badge(env: KisEnvironment) -> str:
     )
 
 
+def _fmt_price(v, sym: str = "") -> str:
+    """None / 0 / NaN 안전 포맷."""
+    if v is None:
+        return "—"
+    try:
+        return f"{sym}{float(v):,.0f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _fmt_int(v) -> str:
+    if v is None:
+        return "—"
+    try:
+        return f"{int(v):,}"
+    except (TypeError, ValueError):
+        return "—"
+
+
 def render_quote_panel(q: Quote, currency: str = "KRW") -> None:
-    delta = f"{q.change:+,.0f} ({q.change_pct:+.2f}%)"
     sym = "₩" if currency == "KRW" else "$"
+    try:
+        delta = f"{float(q.change):+,.0f} ({float(q.change_pct):+.2f}%)"
+    except (TypeError, ValueError):
+        delta = ""
     cols = st.columns(4)
-    cols[0].metric("현재가", f"{sym}{q.price:,.0f}", delta)
-    cols[1].metric("거래량", f"{q.volume:,}")
-    cols[2].metric("고가", f"{sym}{q.high:,.0f}")
-    cols[3].metric("저가", f"{sym}{q.low:,.0f}")
+    cols[0].metric("현재가", _fmt_price(q.price, sym), delta)
+    cols[1].metric("거래량", _fmt_int(q.volume))
+    cols[2].metric("고가", _fmt_price(q.high, sym))
+    cols[3].metric("저가", _fmt_price(q.low, sym))
 
 
 def render_orderbook(bids, asks) -> None:
@@ -117,10 +139,16 @@ def render_order_form(
     is_overseas: bool = False,
     is_futures: bool = False,
 ) -> None:
+    """주문 폼.
+
+    실전: form 내부에 '실거래 확인' 체크박스를 포함시켜 한 번의 submit 으로 가드 + 주문 실행.
+    모의: 추가 확인 없이 즉시 실행.
+    """
     label_ticker = "심볼 (예: NVDA, AAPL)" if is_overseas else (
         "선물코드 (예: 101W3000)" if is_futures else "종목코드 (6자리, 예: 005930)"
     )
-    with st.form(f"order_form_{env.value}"):
+    is_real = env.is_real
+    with st.form(f"order_form_{env.value}", clear_on_submit=False):
         ticker = st.text_input(label_ticker, value=default_ticker)
         c1, c2, c3 = st.columns([1, 1, 1])
         qty = c1.number_input("수량", min_value=1, value=1, step=1)
@@ -131,31 +159,45 @@ def render_order_form(
             value=0.0,
             step=100.0 if not is_overseas else 0.01,
         )
+
+        # 실전 확인 체크박스 — form 내부에 두어 submit 시 함께 검증 (rerun 끊김 회피)
+        real_confirm = False
+        if is_real:
+            real_confirm = st.checkbox(
+                "⚠️ 위 내용을 확인했고, 실거래로 즉시 체결합니다.",
+                key=f"real_confirm_{env.value}",
+            )
+
         b1, b2 = st.columns(2)
-        is_real = env.is_real
         buy_label = "🔴 매수 실행" if is_real else "🟢 매수"
         sell_label = "🔴 매도 실행" if is_real else "🟢 매도"
         submit_buy = b1.form_submit_button(buy_label, type="primary" if is_real else "secondary")
         submit_sell = b2.form_submit_button(sell_label, type="primary" if is_real else "secondary")
 
+    # form 외부에서 submit 결과 처리
     if submit_buy:
-        _execute_order(on_buy, ticker, int(qty), price, order_type, is_real, side="매수")
+        _execute_order(
+            on_buy, ticker, int(qty), price, order_type,
+            is_real=is_real, real_confirmed=real_confirm, side="매수",
+        )
     if submit_sell:
-        _execute_order(on_sell, ticker, int(qty), price, order_type, is_real, side="매도")
+        _execute_order(
+            on_sell, ticker, int(qty), price, order_type,
+            is_real=is_real, real_confirmed=real_confirm, side="매도",
+        )
 
 
-def _execute_order(fn, ticker: str, qty: int, price: float, order_type: str, is_real: bool, *, side: str) -> None:
+def _execute_order(
+    fn, ticker: str, qty: int, price: float, order_type: str,
+    *, is_real: bool, real_confirmed: bool, side: str,
+) -> None:
     if not ticker.strip():
         st.error("종목코드를 입력하세요")
         return
-    is_market = order_type == "시장가"
-    confirm = True
-    if is_real:
-        confirm = st.checkbox(
-            f"⚠️ {side} 주문을 실거래로 실행합니다 — 한 번 더 확인", key=f"confirm_{side}_{ticker}"
-        )
-    if not confirm:
+    if is_real and not real_confirmed:
+        st.error("실거래 확인 체크박스를 켜고 다시 제출하세요")
         return
+    is_market = order_type == "시장가"
     try:
         result = fn(
             ticker=ticker.strip(),

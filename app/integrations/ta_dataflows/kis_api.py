@@ -24,13 +24,17 @@ _KRX_YF = re.compile(r"^(\d{6})\.K[SQ]$", re.IGNORECASE)
 
 
 def _to_krx_code(symbol: str) -> str:
+    """KRX 6자리 코드로 정규화. 비한국 티커면 fallback 트리거 예외."""
     s = symbol.strip().upper()
     if _KRX_BARE.match(s):
         return s
     m = _KRX_YF.match(s)
     if m:
         return m.group(1)
-    raise ValueError(f"not a Korean ticker: {symbol!r}")
+    # TradingAgents route_to_vendor() 는 AlphaVantageRateLimitError 만 fallback 처리.
+    # 비한국 종목(NVDA 등)이 들어오면 이 예외를 던져 yfinance 로 자동 폴백되게 한다.
+    from tradingagents.dataflows.alpha_vantage_common import AlphaVantageRateLimitError
+    raise AlphaVantageRateLimitError(f"KIS adapter: not a Korean ticker {symbol!r}")
 
 
 def is_korean_ticker(symbol: str) -> bool:

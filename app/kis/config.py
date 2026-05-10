@@ -49,6 +49,9 @@ class EnvConfig:
     app_key_var: str
     app_secret_var: str
     account_no_var: str
+    # KIS 계좌상품코드 (CANO + ACNT_PRDT_CD 분리). 종합매매=01, 선물옵션=03 등.
+    account_product_code_var: str
+    account_product_code_default: str
 
     @property
     def cred_group(self) -> str:
@@ -69,6 +72,8 @@ _CONFIGS: dict[KisEnvironment, EnvConfig] = {
         app_key_var="KIS_REAL_APP_KEY",
         app_secret_var="KIS_REAL_APP_SECRET",
         account_no_var="KIS_REAL_ACCOUNT_NO",
+        account_product_code_var="KIS_REAL_ACCOUNT_PRODUCT_CODE",
+        account_product_code_default="01",
     ),
     KisEnvironment.REAL_OVERSEAS: EnvConfig(
         env=KisEnvironment.REAL_OVERSEAS,
@@ -78,6 +83,8 @@ _CONFIGS: dict[KisEnvironment, EnvConfig] = {
         app_key_var="KIS_REAL_APP_KEY",
         app_secret_var="KIS_REAL_APP_SECRET",
         account_no_var="KIS_REAL_ACCOUNT_NO",
+        account_product_code_var="KIS_REAL_ACCOUNT_PRODUCT_CODE",
+        account_product_code_default="01",
     ),
     KisEnvironment.MOCK_DOMESTIC: EnvConfig(
         env=KisEnvironment.MOCK_DOMESTIC,
@@ -87,6 +94,8 @@ _CONFIGS: dict[KisEnvironment, EnvConfig] = {
         app_key_var="KIS_MOCK_DOMESTIC_APP_KEY",
         app_secret_var="KIS_MOCK_DOMESTIC_APP_SECRET",
         account_no_var="KIS_MOCK_DOMESTIC_ACCOUNT_NO",
+        account_product_code_var="KIS_MOCK_DOMESTIC_ACCOUNT_PRODUCT_CODE",
+        account_product_code_default="01",
     ),
     KisEnvironment.MOCK_OVERSEAS: EnvConfig(
         env=KisEnvironment.MOCK_OVERSEAS,
@@ -97,6 +106,8 @@ _CONFIGS: dict[KisEnvironment, EnvConfig] = {
         app_key_var="KIS_MOCK_DOMESTIC_APP_KEY",
         app_secret_var="KIS_MOCK_DOMESTIC_APP_SECRET",
         account_no_var="KIS_MOCK_DOMESTIC_ACCOUNT_NO",
+        account_product_code_var="KIS_MOCK_DOMESTIC_ACCOUNT_PRODUCT_CODE",
+        account_product_code_default="01",
     ),
     KisEnvironment.MOCK_FUTURES: EnvConfig(
         env=KisEnvironment.MOCK_FUTURES,
@@ -106,6 +117,8 @@ _CONFIGS: dict[KisEnvironment, EnvConfig] = {
         app_key_var="KIS_MOCK_FUTURES_APP_KEY",
         app_secret_var="KIS_MOCK_FUTURES_APP_SECRET",
         account_no_var="KIS_MOCK_FUTURES_ACCOUNT_NO",
+        account_product_code_var="KIS_MOCK_FUTURES_ACCOUNT_PRODUCT_CODE",
+        account_product_code_default="03",
     ),
 }
 

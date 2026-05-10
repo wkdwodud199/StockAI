@@ -82,6 +82,38 @@ ANTHROPIC_API_KEY=sk-ant-...
 - 매수/매도 실행 시 form-level 확인 체크박스 추가
 - 선물옵션은 본 프로젝트에서 모의 전용 (실전 키 미보관)
 
+## 모바일 (안드로이드, 본인 사용 전용)
+
+Flutter 네이티브 앱 + FastAPI 백엔드. 갤럭시(또는 안드로이드 일반)에 APK 직접 설치 (Play Store 미배포).
+
+```powershell
+# 1) FastAPI 백엔드 시작 (PC)
+.\scripts\start_api.ps1
+# → http://0.0.0.0:8765
+
+# 2) 외부 노출 (옵션) — 갤럭시가 LAN 바깥에서 접속 가능하도록
+.\scripts\start_tunnel.ps1
+# 출력 https://*.trycloudflare.com 주소를 복사
+
+# 3) APK 빌드 (Flutter SDK 필요. setup.ps1 자동 안내 또는 git clone)
+.\scripts\build_apk.ps1
+# → mobile/build/app/outputs/flutter-apk/app-release.apk
+
+# 4) USB 연결된 갤럭시에 설치
+.\scripts\install_apk.ps1
+```
+
+앱 첫 실행 시 설정 화면:
+- **백엔드 URL**: cloudflared 출력 또는 LAN의 `http://192.168.x.x:8765`
+- **API 토큰**: `.env` 의 `MOBILE_API_TOKEN` 값
+- **실전 PIN**: `.env` 의 `REAL_MODE_PIN` (실전 주문 시 헤더에 첨부)
+
+모바일 실전 주문은 다음 가드를 모두 통과해야 실행됨:
+1. 클라이언트: 생체 인증 (지문/얼굴) — 가능한 디바이스에서만
+2. 클라이언트: 확인 다이얼로그
+3. 클라이언트: 헤더 `X-Real-PIN` 자동 첨부
+4. 서버: PIN 일치 검증 (`require_real_pin`)
+
 ## 라이선스
 
 본 저장소의 코드(앱)는 사용자 작성. TradingAgents는 Apache 2.0, KIS API 사용은 한국투자증권 약관 준수.

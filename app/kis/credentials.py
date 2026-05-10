@@ -18,7 +18,6 @@ def _ensure_dotenv() -> None:
     global _DOTENV_LOADED
     if _DOTENV_LOADED:
         return
-    # 프로젝트 루트의 .env 자동 로드 (이미 셋된 환경변수는 덮어쓰지 않음)
     project_root = Path(__file__).resolve().parents[2]
     load_dotenv(project_root / ".env", override=False)
     _DOTENV_LOADED = True
@@ -30,16 +29,17 @@ class KisCredentials:
     app_key: str
     app_secret: str
     account_no: str
+    account_product_code: str  # ACNT_PRDT_CD (예: "01" 종합매매, "03" 선물옵션)
 
     @property
     def account_prefix(self) -> str:
-        """KIS 주문 API의 CANO (계좌 앞 8자리)."""
-        return self.account_no[:8] if len(self.account_no) >= 8 else self.account_no
+        """KIS 주문 API의 CANO. 8자리 계좌번호 그대로."""
+        return self.account_no.strip()
 
     @property
     def account_suffix(self) -> str:
-        """KIS 주문 API의 ACNT_PRDT_CD (계좌 뒤 2자리)."""
-        return self.account_no[-2:] if len(self.account_no) >= 2 else "01"
+        """ACNT_PRDT_CD. credentials.account_product_code 와 동일 (호환용 alias)."""
+        return self.account_product_code
 
 
 def load_credentials(env: KisEnvironment) -> KisCredentials:
@@ -49,6 +49,7 @@ def load_credentials(env: KisEnvironment) -> KisCredentials:
     app_key = os.getenv(cfg.app_key_var, "").strip()
     app_secret = os.getenv(cfg.app_secret_var, "").strip()
     account_no = os.getenv(cfg.account_no_var, "").strip()
+    product_code = os.getenv(cfg.account_product_code_var, "").strip() or cfg.account_product_code_default
 
     missing = [
         name
@@ -70,4 +71,5 @@ def load_credentials(env: KisEnvironment) -> KisCredentials:
         app_key=app_key,
         app_secret=app_secret,
         account_no=account_no,
+        account_product_code=product_code,
     )

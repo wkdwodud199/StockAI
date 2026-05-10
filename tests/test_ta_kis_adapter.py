@@ -35,6 +35,20 @@ def test_data_vendors_routed_to_kis_first() -> None:
     assert dv["technical_indicators"].split(",")[0] == "kis"
 
 
+def test_kis_get_stock_data_us_ticker_raises_for_fallback() -> None:
+    """비한국 티커는 AlphaVantageRateLimitError raise → route_to_vendor가 yfinance로 폴백 (회귀: collab.md High 1)."""
+    from app.integrations.ta_kis_patch import enable_kis_for_korean_tickers
+    from tradingagents.dataflows.alpha_vantage_common import AlphaVantageRateLimitError
+
+    enable_kis_for_korean_tickers()
+    from app.integrations.ta_dataflows.kis_api import _to_krx_code
+
+    with pytest.raises(AlphaVantageRateLimitError):
+        _to_krx_code("NVDA")
+    with pytest.raises(AlphaVantageRateLimitError):
+        _to_krx_code("AAPL")
+
+
 def test_yfinance_wrap_adds_ks_for_krx() -> None:
     from app.integrations.ta_kis_patch import _maybe_add_ks
 

@@ -4,7 +4,9 @@
 
 ## 활성 작업
 
-(없음 — MVP 완료)
+| Task ID | 제목 | Status | 담당 | 비고 |
+|---------|------|--------|------|------|
+| task-008-mobile-bridge | Flutter APK + FastAPI 게이트웨이 | in-progress | Claude (APK 빌드 중) | 사용자 갤럭시 검증 대기 |
 
 ## 완료 작업
 
