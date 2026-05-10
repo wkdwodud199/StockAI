@@ -19,6 +19,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.kis.account import inquire_balance, inquire_balance_domestic, inquire_balance_overseas
+from app.kis import ticker_master
 from app.kis.config import KisEnvironment, parse_env
 from app.kis.exceptions import KisError, KisOrderRejected
 from app.kis.futures import current_price as futures_price
@@ -122,6 +123,12 @@ class OrderRequest(BaseModel):
     exchange: str | None = "NAS"  # 해외만 사용
 
 
+class TickerOut(BaseModel):
+    code: str
+    name: str
+    market: str
+
+
 class AnalysisRequest(BaseModel):
     ticker: str
     trade_date: _date
@@ -172,6 +179,25 @@ def _balance_to_out(b) -> BalanceOut:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"status": "ok", "ts": time.time()}
+
+
+@app.get("/search", response_model=list[TickerOut], dependencies=[Depends(require_api_token)])
+def search_tickers(q: str = "", limit: int = 20) -> list[TickerOut]:
+    """KRX 종목 검색 (코드 또는 한국어 이름 부분일치)."""
+    results = ticker_master.search(q, limit=max(1, min(limit, 50)))
+    return [TickerOut(code=t.code, name=t.name, market=t.market) for t in results]
+
+
+@app.get("/ticker/{code}", response_model=TickerOut, dependencies=[Depends(require_api_token)])
+def ticker_lookup(code: str) -> TickerOut:
+    name = ticker_master.lookup_name(code)
+    if name is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"unknown ticker: {code}")
+    # market 정보까지
+    for t in ticker_master.get_all_tickers():
+        if t.code == code:
+            return TickerOut(code=t.code, name=t.name, market=t.market)
+    return TickerOut(code=code, name=name, market="")
 
 
 @app.get("/quote/domestic/{ticker}", response_model=QuoteOut, dependencies=[Depends(require_api_token)])

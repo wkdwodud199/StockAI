@@ -1,4 +1,17 @@
 /// FastAPI 응답 모델 (app/api/main.py 의 *Out 모델과 동일 스키마).
+class TickerInfo {
+  final String code;
+  final String name;
+  final String market;
+  TickerInfo({required this.code, required this.name, required this.market});
+  factory TickerInfo.fromJson(Map<String, dynamic> j) => TickerInfo(
+        code: j['code'] as String,
+        name: j['name'] as String,
+        market: j['market'] as String? ?? '',
+      );
+  String get displayLabel => '$code · $name';
+}
+
 class Quote {
   final String ticker;
   final double price;

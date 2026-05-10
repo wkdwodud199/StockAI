@@ -46,6 +46,22 @@ class ApiClient {
     return jsonDecode(utf8.decode(resp.bodyBytes));
   }
 
+  Future<List<TickerInfo>> searchTickers(String query, {int limit = 20}) async {
+    if (query.trim().isEmpty) return [];
+    final data = await _get('/search', query: {'q': query, 'limit': limit}) as List;
+    return data.map((e) => TickerInfo.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<TickerInfo?> tickerLookup(String code) async {
+    try {
+      final data = await _get('/ticker/$code');
+      return TickerInfo.fromJson(data as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
   Future<bool> health() async {
     try {
       final resp = await http.get(Uri.parse('$baseUrl/health')).timeout(const Duration(seconds: 5));

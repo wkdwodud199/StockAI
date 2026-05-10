@@ -21,6 +21,7 @@ dependencies = [
   "stockstats",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
+  "finance-datareader>=0.9",
 ]
 
 [project.optional-dependencies]
