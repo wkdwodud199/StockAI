@@ -1,0 +1,46 @@
+# === Secrets / credentials ===
+.env
+.env.*
+!.env.example
+MTS_API.txt
+.kis_cache/
+*.token
+
+# === Python ===
+.venv/
+venv/
+env/
+__pycache__/
+
+# === External libraries (cloned by scripts/setup.ps1) ===
+TradingAgents/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Streamlit ===
+.streamlit/secrets.toml
+
+# === OMC / Claude Code internals ===
+.omc/
+.claude/
+.cwc-template/
+
+# === IDE / Editor ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS ===
+Thumbs.db
+.DS_Store
+
+# === Logs ===
+*.log
+logs/

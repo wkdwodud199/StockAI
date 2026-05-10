@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stock-mts-ta"
+version = "0.1.0"
+description = "한국투자증권 KIS Open API + TradingAgents 통합 트레이딩 앱"
+requires-python = ">=3.11"
+dependencies = [
+  "streamlit>=1.40",
+  "requests>=2.32",
+  "websockets>=13",
+  "pydantic>=2.9",
+  "python-dotenv>=1.0",
+  "pandas>=2.2",
+  "plotly>=5.24",
+  "rich>=13",
+  "typer>=0.12",
+  "stockstats",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio", "ruff", "mypy"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["TradingAgents*", "tests*", "kb*", "runtime*", "templates*", "scripts*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+markers = [
+  "network: requires KIS API network access (mock env)",
+  "market_hours: requires KRX trading hours 09:00-15:30 KST weekday",
+  "real: hits real-money trading (NEVER auto-run)",
+  "slow: long-running test",
+]
