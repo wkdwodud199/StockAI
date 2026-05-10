@@ -10,6 +10,7 @@ from app.kis.exceptions import KisError
 from app.kis.order_domestic import buy as kis_buy, sell as kis_sell
 from app.kis.quote_domestic import current_price, daily_candles, orderbook
 from app.ui.components import (
+    auto_refresh_toggle,
     date_range_inputs,
     env_badge,
     render_balance,
@@ -34,6 +35,7 @@ def render(env: KisEnvironment) -> None:
 
     with tab_quote:
         ticker = st.text_input("종목코드 (6자리)", value=st.session_state.get("ai_picked_ticker", "005930"))
+        auto_refresh_toggle(key=f"quote_{env.value}")
         if ticker.strip():
             try:
                 q = current_price(ticker.strip(), env=env)

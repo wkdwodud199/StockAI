@@ -4,13 +4,7 @@
 
 ## 활성 작업
 
-| Task ID | 제목 | Status | 담당 | 비고 |
-|---------|------|--------|------|------|
-| task-005-polish | 스크립트·패키징·문서화 마감 | ready | (대기) | Phase E/F — 첫 git 커밋 + 회귀 |
-
-## 예약 (큐)
-
-(없음 — MVP는 task-005까지)
+(없음 — MVP 완료)
 
 ## 완료 작업
 
@@ -21,6 +15,8 @@
 | task-002-kis-client | KIS Open API 클라이언트 라이브러리 (auth, quote, order, account, futures, websocket; 17 테스트 PASS) | 2026-05-10 | [summary](../artifacts/task-002-summary.md) |
 | task-003-ta-adapter | TradingAgents KIS 데이터플로우 어댑터 (포크 금지, import-time 패치, 8 테스트 PASS) | 2026-05-10 | [summary](../artifacts/task-003-summary.md) |
 | task-004-streamlit-ui | Streamlit 7-메뉴 대시보드 (HTTP 200, 0 트레이스백) | 2026-05-10 | [summary](../artifacts/task-004-summary.md) |
+| task-005-news-polish | 한국어 뉴스 RSS dataflow (Google News + yfinance 종목명 lookup) | 2026-05-10 | [summary](../artifacts/task-005-summary.md) |
+| task-006-websocket | KIS WebSocket 실시간 시세 + Streamlit 자동 갱신 + 라운드트립 도구 | 2026-05-10 | [summary](../artifacts/task-006-summary.md) |
 
 ## 마스터 플랜
 

@@ -62,7 +62,7 @@ def is_applied() -> bool:
 def _do_apply() -> None:
     from tradingagents.dataflows import interface, y_finance, yfinance_news
     from tradingagents.dataflows.config import set_config, get_config
-    from app.integrations.ta_dataflows import kis_api
+    from app.integrations.ta_dataflows import kis_api, news_korean
 
     # 1) Vendor 등록
     if "kis" not in interface.VENDOR_LIST:
@@ -70,6 +70,11 @@ def _do_apply() -> None:
     interface.VENDOR_METHODS.setdefault("get_stock_data", {})["kis"] = kis_api.get_stock_data
     interface.VENDOR_METHODS.setdefault("get_indicators", {})["kis"] = (
         kis_api.get_stockstats_indicators_window
+    )
+    # 한국어 뉴스: 'kis' 벤더로 등록 (KRX 종목이 아니면 KisError → yfinance 폴백)
+    interface.VENDOR_METHODS.setdefault("get_news", {})["kis"] = news_korean.get_news
+    interface.VENDOR_METHODS.setdefault("get_global_news", {})["kis"] = (
+        news_korean.get_global_news
     )
 
     # 2) yfinance 함수에 KRX → .KS 자동 부착 monkey-patch
@@ -121,9 +126,10 @@ def _do_apply() -> None:
     data_vendors = dict(cfg.get("data_vendors", {}))
     data_vendors["core_stock_apis"] = "kis,yfinance"
     data_vendors["technical_indicators"] = "kis,yfinance"
-    # fundamental_data, news_data는 yfinance에서 .KS 폴백 처리
+    # fundamental_data는 yfinance .KS 폴백
     data_vendors.setdefault("fundamental_data", "yfinance")
-    data_vendors.setdefault("news_data", "yfinance")
+    # news_data는 한국어 뉴스(KRX 한정) → yfinance 폴백
+    data_vendors["news_data"] = "kis,yfinance"
     set_config({"data_vendors": data_vendors})
 
 

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 
 from app.kis.config import KisEnvironment
 from app.kis.exceptions import KisError, KisOrderRejected
@@ -172,6 +173,28 @@ def _execute_order(fn, ticker: str, qty: int, price: float, order_type: str, is_
         st.success(f"{side} 주문 완료 — 주문번호 {result.order_no}")
     else:
         st.warning(f"주문 응답: {result.msg or '확인 필요'}")
+
+
+def auto_refresh_toggle(*, key: str, default_interval: int = 5) -> int:
+    """자동 새로고침 토글. 켜진 경우 interval(초) 마다 페이지 rerun.
+
+    반환값: 사용자가 선택한 interval (초). 끄면 0.
+    """
+    cols = st.columns([1, 2, 4])
+    enabled = cols[0].toggle("자동 갱신", value=False, key=f"{key}_toggle")
+    interval = cols[1].selectbox(
+        "갱신 주기",
+        [3, 5, 10, 30],
+        index=1,
+        format_func=lambda x: f"{x}초",
+        key=f"{key}_interval",
+        disabled=not enabled,
+    )
+    if enabled:
+        st_autorefresh(interval=interval * 1000, key=f"{key}_autorefresh")
+        cols[2].caption(f"⏱ 마지막 갱신: {datetime.now().strftime('%H:%M:%S')}")
+        return int(interval)
+    return 0
 
 
 def date_range_inputs(default_days: int = 30) -> tuple[date, date]:
